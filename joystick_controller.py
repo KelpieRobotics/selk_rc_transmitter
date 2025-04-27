@@ -1,108 +1,103 @@
-import Gamepad
-import cobs.cobs
-import rc_channels_pb2
+from Gamepad import Gamepad
 import socket
 import time
+import sys
+import os.path
 
-deadband = 0.07
+# Make sure to run scripts/install.sh to install dependencies and build message
+sys.path.append(os.path.abspath("selk_rc_msgs/build/python"))
+
+import rc_channels_pb2
+
+# TODO: clean-up file and styling
+
+# TODO: move to yaml config
+# Gamepad
+GAMEPAD_TYPE = Gamepad.Xbox360
+MAPPINGS = {
+    "AXIS": {
+        "LEFT-X":   "rc4",
+        "LEFT-Y":   "rc3",
+        "RIGHT-X":  "rc1",
+        "RIGHT-Y":  "rc2",
+        "6":        "rc5", # D-Pad Left-Right
+        "7":        "rc6", # D-Pad Up-Down
+        "LT":       "rc7",
+        "RT":       "rc8",
+    },
+    "BUTTON": {
+        "A":        "rc9",
+        "B":        "rc10",
+        "X":        "rc11",
+        "Y":        "rc12",
+        "LB":       "rc13", # Left Shoulder
+        "RB":       "rc14", # Right Shoulder
+        "BACK":     "rc15", # Map
+        "START":    "rc16", # Menu
+        # "LA":       "rc17", # Left Stick
+        # "RA":       "rc18", # Right Stick
+
+    }
+}
+DEADBAND = 0.07 # TODO: Deadband per axis as some axis don't have deadband (triggers)
+MIN_VALUE = 1000
+NEUT_VALUE = 1500
+MAX_VALUE = 2000
+
+# UDP
+UDP_IP = "127.0.0.1"
+UDP_PORT = 5005
+
+def axis_to_pwm(value):
+    return NEUT_VALUE if abs(value) <= DEADBAND else int((value+1)*500 + 1000)
+
+def button_to_pwm(value):
+    return MAX_VALUE if value else MIN_VALUE
+
+def print_msg(msg, channels):
+    for channel in channels:
+        print(f"\t{channel}:\t{getattr(msg,channel,None)}")
+    print("---")
+
+
 if __name__ == "__main__":
     axis = {0:0, 1:0, 4:0, 5:0}
     msg = rc_channels_pb2.RCChannels()
-    field = ["rc1", "rc2", "rc3", "rc4", "rc5", "rc6", "rc7", "rc8", "rc9",
-             "rc10", "rc11", "rc12", "rc13", "rc14", "rc15", "rc16"]
-    # 2000 = true, 1000 = false
-    MAX_VALUE = 2000
-    MIN_VALUE = 1000
 
-    # UDP
-    UDP_IP = "127.0.0.1"
-    UDP_PORT = 5005
+    channels = [attribute for attribute in dir(msg) if attribute.startswith("rc")]
+    channels.sort()
+
+    for channel in channels:
+        setattr(msg, channel, 1500)
+
+    # print_msg(msg, channels)
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    while True:
-        time.sleep(5)
-        print("controller not connected ....")
-        if Gamepad.available():
-            gamepad = Gamepad.XboxONE()
-            print("controller connected")
-            break
+    while not Gamepad.available():
+        print("Waiting for gamepad...")
+        time.sleep(3)
+
+    gamepad = GAMEPAD_TYPE()
+
     try:
         while True:
             eventType, control, value = gamepad.getNextEvent()
-            if eventType == 'BUTTON':
-                if control == 'A':
-                    if value:
-                        msg.rc1 = MAX_VALUE
-                    else:
-                        msg.rc1 = MIN_VALUE
-                if control == 'B':
-                    if value:
-                        msg.rc2 = MAX_VALUE
-                    else:
-                        msg.rc2 = MIN_VALUE    
-                if control == 'X':
-                    if value:
-                        msg.rc3 = MAX_VALUE
-                    else:
-                        msg.rc3 = MIN_VALUE
-                if control == 'Y':
-                    if value:
-                        msg.rc4 = MAX_VALUE
-                    else:
-                        msg.rc4 = MIN_VALUE
-                if control == 'LB':
-                    if value:
-                        msg.rc5 = MAX_VALUE
-                    else:
-                        msg.rc5 = MIN_VALUE
-                if control == 'RB':
-                    if value:
-                        msg.rc6 = MAX_VALUE
-                    else:
-                        msg.rc6 = MIN_VALUE
-                if control == 'LASB':
-                    if value:
-                        msg.rc9 = MAX_VALUE
-                    else:
-                        msg.rc9 = MIN_VALUE
-                if control == 'RASB':
-                    if value:
-                        msg.rc10 = MAX_VALUE
-                    else:
-                        msg.rc10 = MIN_VALUE
-            # 1000 to 2000 with 1500 being neutral
-            if eventType == 'AXIS':
-                if control == 'LAS -X':
-                    speed = -value
-                    msg.rc11 = int(1500 + (speed * 500))
-                if control == 'LAS -Y':
-                    steering = value
-                    msg.rc12 = int(1500 + (steering * 500))
-                if control == 'RAS -X':
-                    speed = -value
-                    msg.rc13 = int(1500 + (speed * 500))
-                if control == 'RAS -Y':
-                    steering = value
-                    msg.rc14 = int(1500 + (steering * 500))
-                if control == 'RT':
-                    trigger = int(1500 + (value * 500))
-                    msg.rc15 = trigger
-                if control == 'LT':
-                    trigger = int(1500 + (value * 500))
-                    msg.rc16 = trigger
-                if control == 'DPAD -X':
-                    button = int(1500 + (value * 500))
-                    msg.rc7 = button
-                if control == 'DPAD -Y':
-                    button = int(1500 + (value * 500))
-                    msg.rc8 = button
-            buffer = bytearray(cobs.cobs.encode(msg.SerializeToString())+bytes([0]))
-            sock.sendto(buffer, (UDP_IP, UDP_PORT))
+            if control in MAPPINGS[eventType]:
+                if MAPPINGS[eventType][control] in channels:
+                    pwm_value = axis_to_pwm(value) if eventType == "AXIS" else button_to_pwm(value)
+
+                    setattr(msg, MAPPINGS[eventType][control], pwm_value)
+                else:
+                    print(f"Channel {MAPPINGS[eventType][control]} doesn't exist" )
+            else:
+                print(f"Input {control} of type {eventType} is not mapped.")
+
+            # print_msg(msg, channels)
+            sock.sendto(msg.SerializeToString(), (UDP_IP, UDP_PORT))
+
     except BaseException as e:
-        # raise e
-        default_value = 1500
-        for field_name in field:
-            setattr(msg, field_name, 1500)
-        buffer = bytearray(cobs.cobs.encode(msg.SerializeToString())+bytes([0]))
-        sock.sendto(buffer, (UDP_IP, UDP_PORT))
+        for channel in channels:
+            setattr(msg, channel, NEUT_VALUE)
+
+        sock.sendto(msg.SerializeToString(), (UDP_IP, UDP_PORT))

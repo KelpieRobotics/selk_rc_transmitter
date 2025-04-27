@@ -1,0 +1,7 @@
+[submodule "selk_rc_msgs"]
+	path = selk_rc_msgs
+	url = https://github.com/KelpieRobotics/selk_rc_msgs
+	branch = scope-1
+[submodule "Gamepad"]
+	path = Gamepad
+	url = https://github.com/piborg/Gamepad

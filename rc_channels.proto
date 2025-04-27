@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package rc_interface;
+
+message RCChannels {
+    uint32 rc1 = 1; // A
+    uint32 rc2 = 2; // B
+    uint32 rc3 = 3; // X
+    uint32 rc4 = 4; // Y
+    uint32 rc5 = 5; // LB
+    uint32 rc6 = 6; // RB
+    uint32 rc7 = 7; // DPAD X axis
+    uint32 rc8 = 8; // DPAD Y axis
+    uint32 rc9 = 9; // LASB (Left joystick click)
+    uint32 rc10 = 10; // RASB (right joystick click)
+    uint32 rc11 = 11; // LAS-X (left analog stick, left/right steer)
+    uint32 rc12 = 12; // LAS-Y (up/down speed inverted)
+    uint32 rc13 = 13; // RAS-X
+    uint32 rc14 = 14; // RAS-Y
+    uint32 rc15 = 15; // RT
+    uint32 rc16 = 16; // LT
+}

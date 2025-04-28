@@ -3,6 +3,7 @@ import socket
 import time
 import sys
 import os.path
+import yaml
 
 # Make sure to run scripts/install.sh to install dependencies and build message
 sys.path.append(os.path.abspath("selk_rc_msgs/build/python"))
@@ -11,34 +12,12 @@ import rc_channels_pb2
 
 # TODO: clean-up file and styling
 
-# TODO: move to yaml config
-# Gamepad
-GAMEPAD_TYPE = Gamepad.Xbox360
-MAPPINGS = {
-    "AXIS": {
-        "LEFT-X":   "rc4",
-        "LEFT-Y":   "rc3",
-        "RIGHT-X":  "rc1",
-        "RIGHT-Y":  "rc2",
-        "6":        "rc5", # D-Pad Left-Right
-        "7":        "rc6", # D-Pad Up-Down
-        "LT":       "rc7",
-        "RT":       "rc8",
-    },
-    "BUTTON": {
-        "A":        "rc9",
-        "B":        "rc10",
-        "X":        "rc11",
-        "Y":        "rc12",
-        "LB":       "rc13", # Left Shoulder
-        "RB":       "rc14", # Right Shoulder
-        "BACK":     "rc15", # Map
-        "START":    "rc16", # Menu
-        # "LA":       "rc17", # Left Stick
-        # "RA":       "rc18", # Right Stick
+with open('config-yaml/mapping.yaml', 'r') as file:
+    config = yaml.safe_load(file)
 
-    }
-}
+GAMEPAD_TYPE = config['GAMEPAD_TYPE']
+MAPPINGS = config['MAPPINGS']
+
 DEADBAND = 0.07 # TODO: Deadband per axis as some axis don't have deadband (triggers)
 MIN_VALUE = 1000
 NEUT_VALUE = 1500
@@ -73,6 +52,9 @@ if __name__ == "__main__":
     # print_msg(msg, channels)
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+    print(MAPPINGS)
+    print(GAMEPAD_TYPE)
 
     while not Gamepad.available():
         print("Waiting for gamepad...")

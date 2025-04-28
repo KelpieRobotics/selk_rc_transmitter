@@ -1,0 +1,20 @@
+GAMEPAD_TYPE: Xbox360
+MAPPINGS:
+  AXIS:
+    LEFT-X: rc4
+    LEFT-Y: rc3
+    RIGHT-X: rc1
+    RIGHT-Y: rc2
+    6: rc5
+    7: rc6
+    LT: rc7
+    RT: rc8
+  BUTTON:
+    A: rc9
+    B: rc10
+    X: rc11
+    Y: rc12
+    LB: rc13
+    RB: rc14
+    BACK: rc15
+    START: rc16

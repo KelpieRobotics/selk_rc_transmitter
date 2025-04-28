@@ -5,8 +5,8 @@ MAPPINGS:
     LEFT-Y: rc3
     RIGHT-X: rc1
     RIGHT-Y: rc2
-    6: rc5
-    7: rc6
+    "6": rc5
+    "7": rc6
     LT: rc7
     RT: rc8
   BUTTON:

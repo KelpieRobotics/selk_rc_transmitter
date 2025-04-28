@@ -53,8 +53,8 @@ if __name__ == "__main__":
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    print(MAPPINGS)
-    print(GAMEPAD_TYPE)
+    #print(MAPPINGS)
+    #print(GAMEPAD_TYPE)
 
     while not Gamepad.available():
         print("Waiting for gamepad...")

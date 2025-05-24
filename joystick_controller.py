@@ -54,7 +54,7 @@ def print_msg(msg, channels):
 
 if __name__ == "__main__":
     msg = rc_channels_pb2.RCChannels()
-    channels = sorted([attribute for attribute in dir(msg) if attribute.startswith("rc")])
+    channels = [attribute for attribute in dir(msg) if attribute.startswith("rc")]
 
     get_centers()
 

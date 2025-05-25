@@ -4,10 +4,14 @@ import time
 import sys
 import os.path
 
+from multiprocessing import Process
+
 # Make sure to run scripts/install.sh to install dependencies and build message
 sys.path.append(os.path.abspath("selk_rc_msgs/build/python"))
 
 import rc_channels_pb2
+
+import image_stitching
 
 # TODO: clean-up file and styling
 
@@ -59,8 +63,29 @@ def print_msg(msg, channels):
         print(f"\t{channel}:\t{getattr(msg,channel,None)}")
     print("---")
 
+def key_board_image_stitching():
+    (tx, rx) = Pipe()
 
+    _process = Process(
+        target=sticher_process,
+        args=[rx]
+    )
+
+    _process.start()
+
+    def on_release(key):
+        if key == KEY_BINDING:
+            tx.send(1)
+
+    listen_keyboard(
+        on_release=on_release,
+    )
 if __name__ == "__main__":
+
+    _process = Process(target =key_board_image_stitching, daemon=True)
+    _process.start()
+
+
     axis = {0:0, 1:0, 4:0, 5:0}
     msg = rc_channels_pb2.RCChannels()
 

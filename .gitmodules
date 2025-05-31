@@ -5,3 +5,6 @@
 [submodule "Gamepad"]
 	path = Gamepad
 	url = https://github.com/piborg/Gamepad
+[submodule "xpano"]
+	path = xpano
+	url = https://github.com/krupkat/xpano.git

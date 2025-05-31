@@ -30,7 +30,7 @@ class State(Enum):
                 raise NotImplementedError()
 
 
-def capture_images(output_dir: str = "./images", port: int = 5701, fps: float | str=2):
+def capture_images(output_dir: str = "./images", port: int = 5702, fps: float | str=2):
     gst_cmd = [
         "gst-launch-1.0", "-e",
         "udpsrc", f"port={port}",
@@ -145,7 +145,7 @@ def sticher_process(rx: Connection):
             case State.CAPTURE: 
                 worker_thread = Process(
                     target = capture_images,
-                    args=["./images", 5701, 1]
+                    args=["./images", 5702, 1]
                 )
 
                 worker_thread.start()       

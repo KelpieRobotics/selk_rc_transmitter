@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./selk_rc_msgs/build/python"
+    ]
+}

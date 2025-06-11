@@ -195,6 +195,18 @@ mappings:
     center: 0
     speed: 5
 
+special_functions:
+  panorama:
+    function: image_stitch
+    mappings:
+      pan:
+        mapping: camera_pan
+        min: -100
+        max: 100
+        step: 10
+      tilt: null
+    images_dir: "{current_time}_panorama" # TODO: create a list of available variables for substitution
+
 outputs:
   udp:
     type: selk_udp

@@ -10,7 +10,6 @@ import time
 # TODO: asyncio
 
 
-
 def reset_inputs():
     for axis in inputs["axes"]:
         inputs["axes"][axis].process(inputs["axes"][axis].neutral)
@@ -18,8 +17,25 @@ def reset_inputs():
     for button in inputs["buttons"]:
         inputs["buttons"][button].process(False)
 
+def key_board_image_stitching():
+    (tx, rx) = Pipe()
 
+    _process = Process(
+        target=sticher_process,
+        args=[rx]
+    )
+
+    _process.start()
+
+    def on_release(key):
+        if key == KEY_BINDING:
+            tx.send(1)
+
+    listen_keyboard(
+        on_release=on_release,
+    )
 if __name__ == "__main__":
+
     config, inputs, mappings, outputs = configs.load_config('config.yaml') # TODO: Config command-line argument
 
     # print("Config")

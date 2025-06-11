@@ -1,103 +1,70 @@
+import configs
+from utils import pretty_print
+
 from Gamepad import Gamepad
-import socket
+
 import time
-import sys
-import os.path
 
-# Make sure to run scripts/install.sh to install dependencies and build message
-sys.path.append(os.path.abspath("selk_rc_msgs/build/python"))
 
-import rc_channels_pb2
+# TODO: argparse
+# TODO: asyncio
 
-# TODO: clean-up file and styling
 
-# TODO: move to yaml config
-# Gamepad
-GAMEPAD_TYPE = Gamepad.Xbox360
-MAPPINGS = {
-    "AXIS": {
-        "LEFT-X":   "rc4",
-        "LEFT-Y":   "rc3",
-        "RIGHT-X":  "rc1",
-        "RIGHT-Y":  "rc2",
-        "6":        "rc5", # D-Pad Left-Right
-        "7":        "rc6", # D-Pad Up-Down
-        "LT":       "rc7",
-        "RT":       "rc8",
-    },
-    "BUTTON": {
-        "A":        "rc9",
-        "B":        "rc10",
-        "X":        "rc11",
-        "Y":        "rc12",
-        "LB":       "rc13", # Left Shoulder
-        "RB":       "rc14", # Right Shoulder
-        "BACK":     "rc15", # Map
-        "START":    "rc16", # Menu
-        # "LA":       "rc17", # Left Stick
-        # "RA":       "rc18", # Right Stick
 
-    }
-}
-DEADBAND = 0.07 # TODO: Deadband per axis as some axis don't have deadband (triggers)
-MIN_VALUE = 1000
-NEUT_VALUE = 1500
-MAX_VALUE = 2000
+def reset_inputs():
+    for axis in inputs["axes"]:
+        inputs["axes"][axis].process(inputs["axes"][axis].neutral)
 
-# UDP
-UDP_IP = "127.0.0.1"
-UDP_PORT = 5005
-
-def axis_to_pwm(value):
-    return NEUT_VALUE if abs(value) <= DEADBAND else int((value+1)*500 + 1000)
-
-def button_to_pwm(value):
-    return MAX_VALUE if value else MIN_VALUE
-
-def print_msg(msg, channels):
-    for channel in channels:
-        print(f"\t{channel}:\t{getattr(msg,channel,None)}")
-    print("---")
+    for button in inputs["buttons"]:
+        inputs["buttons"][button].process(False)
 
 
 if __name__ == "__main__":
-    axis = {0:0, 1:0, 4:0, 5:0}
-    msg = rc_channels_pb2.RCChannels()
+    config, inputs, mappings, outputs = configs.load_config('config.yaml') # TODO: Config command-line argument
 
-    channels = [attribute for attribute in dir(msg) if attribute.startswith("rc")]
-    channels.sort()
+    # print("Config")
+    # pretty_print(config)
+    # print()
 
-    for channel in channels:
-        setattr(msg, channel, 1500)
+    # print("Inputs")
+    # pretty_print({"axes": {axis: str(inputs["axes"][axis]) for axis in inputs["axes"].keys()}, "buttons": {button: str(inputs["buttons"][button]) for button in inputs["buttons"].keys()}})
+    # print()
 
-    # print_msg(msg, channels)
+    # print("Mappings")
+    # pretty_print({mapping: str(mappings[mapping]) for mapping in mappings})
+    # print()
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # print("Outputs")
+    # pretty_print({output: str(outputs[output]) for output in outputs})
+    # print()
+
+
+    reset_inputs()
 
     while not Gamepad.available():
-        print("Waiting for gamepad...")
+        print("Gamepad not detected. Retrying in 3 seconds...")
         time.sleep(3)
 
-    gamepad = GAMEPAD_TYPE()
+    gamepad = getattr(Gamepad, config["gamepad"])()
+    print("Gamepad connected")
 
     try:
         while True:
-            eventType, control, value = gamepad.getNextEvent()
-            if control in MAPPINGS[eventType]:
-                if MAPPINGS[eventType][control] in channels:
-                    pwm_value = axis_to_pwm(value) if eventType == "AXIS" else button_to_pwm(value)
+            eventType, input, value = gamepad.getNextEvent()
 
-                    setattr(msg, MAPPINGS[eventType][control], pwm_value)
-                else:
-                    print(f"Channel {MAPPINGS[eventType][control]} doesn't exist" )
-            else:
-                print(f"Input {control} of type {eventType} is not mapped.")
+            # print(f"Input Event - Type: {eventType}, Control: {input}, Value: {value}")
 
-            # print_msg(msg, channels)
-            sock.sendto(msg.SerializeToString(), (UDP_IP, UDP_PORT))
+            if eventType == "AXIS" and input in inputs["axes"]:
+                inputs["axes"][input].process(value)
+
+            elif eventType == "BUTTON" and input in inputs["buttons"]:
+                inputs["buttons"][input].process(value)
+
+            # else:
+            #     print(f"[Unmapped] Input '{input}' of type '{eventType}' is not mapped.")
+
 
     except BaseException as e:
-        for channel in channels:
-            setattr(msg, channel, NEUT_VALUE)
+        print(f"[Exception] {e}")
+        reset_inputs()
 
-        sock.sendto(msg.SerializeToString(), (UDP_IP, UDP_PORT))

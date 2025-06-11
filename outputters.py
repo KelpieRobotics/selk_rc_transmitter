@@ -65,7 +65,7 @@ class SelkUdpOutputter(UdpOutputter):
 
         setattr(self.msg, label, int(value*10))
 
-        self.__print_msg()
+        # self.__print_msg()
 
         return self.send(self.msg.SerializeToString())
 

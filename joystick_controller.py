@@ -21,8 +21,23 @@ def reset_inputs():
 
 if __name__ == "__main__":
     config, inputs, mappings, outputs = configs.load_config('config.yaml') # TODO: Config command-line argument
-    pretty_print(config)
-    pretty_print({"axes": {axis: str(inputs["axes"][axis]) for axis in inputs["axes"].keys()}, "buttons": {button: str(inputs["buttons"][button]) for button in inputs["buttons"].keys()}})
+
+    # print("Config")
+    # pretty_print(config)
+    # print()
+
+    # print("Inputs")
+    # pretty_print({"axes": {axis: str(inputs["axes"][axis]) for axis in inputs["axes"].keys()}, "buttons": {button: str(inputs["buttons"][button]) for button in inputs["buttons"].keys()}})
+    # print()
+
+    # print("Mappings")
+    # pretty_print({mapping: str(mappings[mapping]) for mapping in mappings})
+    # print()
+
+    # print("Outputs")
+    # pretty_print({output: str(outputs[output]) for output in outputs})
+    # print()
+
 
     reset_inputs()
 
@@ -31,13 +46,13 @@ if __name__ == "__main__":
         time.sleep(3)
 
     gamepad = getattr(Gamepad, config["gamepad"])()
-    print("Gamepad connected.")
+    print("Gamepad connected")
 
     try:
         while True:
             eventType, input, value = gamepad.getNextEvent()
 
-            print(f"Input Event - Type: {eventType}, Control: {input}, Value: {value}")
+            # print(f"Input Event - Type: {eventType}, Control: {input}, Value: {value}")
 
             if eventType == "AXIS" and input in inputs["axes"]:
                 inputs["axes"][input].process(value)
@@ -45,8 +60,8 @@ if __name__ == "__main__":
             elif eventType == "BUTTON" and input in inputs["buttons"]:
                 inputs["buttons"][input].process(value)
 
-            else:
-                print(f"[Unmapped] Input '{input}' of type '{eventType}' is not mapped.")
+            # else:
+            #     print(f"[Unmapped] Input '{input}' of type '{eventType}' is not mapped.")
 
 
     except BaseException as e:

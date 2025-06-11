@@ -2,20 +2,42 @@
 
 Linux gamepad controls transmitter. Requires [selk_rc_receiver](https://github.com/KelpieRobotics/selk_rc_receiver) to receive and output as an SBUS receiver.
 
-## Config
+## Architecture
 
-### Mappings
+A Gamepad consists of many inputs which fall into one of the 2 caterogies, an axis or a button. Axes are analogue inputs with ranges from -1 to 1, while buttons are discrete input returning True when pressed and False when released.
+
+When a Input changes on any of the axes or buttons on the Gamepad, an event is generated, with the type of input, its label (either the input number or its friendly name) and the new value of the input. Then the new value will be processed, mapped and then finally output.
+
+```
+           *********      **********      **********
+Value ---> * Input * ---> * Mapper * ---> * Output * ---> transmission
+           *********      **********      **********
+```
+
+Input - This step takes the raw value from the controller, and user-defined parameters to scale it to [-100,100] range.
+
+Mapper - this step takes the scaled value and calculates the appropriate output
+
+Output - this step takes the final value transmits it
+
+This program uses a -100 to 100 range for all purposes and all inputs will be mapped to this range. A value must fall into this range or else it will be rounded to the nearest limit. The value may be an int or a float, however, only a single decimal precision will be transmitted, rounding with the floor function.
+
+## FIXME: Config
+
+### Inputs
 
 #### Axis
 
 ##### `mode`
 Currently mode can be one of the following:
 
-* ###### `passthrough`
+* ###### `normal`
 
 This mode should be used in most cases. Input is passthrough, with certain modifications to the signal. See the descriptions of other params to determine their function.
 
 Example
+
+<!-- FIXME: New config schema -->
 ```yaml
 mappings:
   axis:
@@ -31,16 +53,17 @@ mappings:
 
 ![passthrough.png](images/passthrough.png)
 
-* ###### `passthrough_absolute_weight`
+* ###### `absolute_weight`
 
-Similar to passthrough, however, the `weight` param has a different behaviour when `center` is not zero.
+Similar to `normal`, however, the `weight` param has a different behaviour when `center` is not zero.
 
-In `passthrough` mode, the `weight` will be offset by the `center` value. This is useful when you want to move the center point of the output but keep the same rate of change for a given change of input.
+In `normal` mode, the `weight` will be offset by the `center` value. This is useful when you want to move the center point of the output but keep the same rate of change for a given change of input.
 
-However, in `passthrough_absolute_weight` mode, the weight determines to what value output is extrapolated at 100 input when `max` is sufficiently large. That means when `center` is not zero, function still pass through the (100, `weight`) point (notice the slop of the function may be different if `max` != -`min`).
+However, in `absolute_weight` mode, the weight determines to what value output is extrapolated at 100 input when `max` is sufficiently large. That means when `center` is not zero, function still pass through the (100, `weight`) point (notice the slop of the function may be different if `max` != -`min`).
 
 Example
 
+<!-- FIXME: New config schema -->
 ```yaml
 mappings:
   axis:
@@ -66,15 +89,17 @@ mappings:
 
 ![passthrough_vs_passthrough_absolute_weight.png](images/passthrough_vs_passthrough_absolute_weight.png)
 
-* ###### `passthrough_scaled_weight`
+* ###### `scaled_weight`
 
 Similar to `passthrough` with a different behaviour around limits.
 
-In `passthrough` mode, the `weight` param determines the slop of the function, with `min` and `max` parameters creating a hard cap on the value.
+In `nornmal` mode, the `weight` param determines the slop of the function, with `min` and `max` parameters creating a hard cap on the value.
 
-Using `passthrough_scaled_weight`, `weight` param is ignored, and the slope is determined by the `min` and `max` params. The function will pass through both (-100, `min`) and (100, `max`). It consists of 2 linear segments from (0, `center`) to these points.
+When using `scaled_weight`, the `weight` param is ignored, and the slope is determined by the `min` and `max` params. The function will pass through both (-100, `min`) and (100, `max`) points. It consists of 2 linear segments from (0, `center`) to these points.
 
 Example
+
+<!-- FIXME: New config schema -->
 ```yaml
 mappings:
   axis:
@@ -107,6 +132,7 @@ Note: Depending on the `mode` and other params (such as `deadband`) the actual s
 
 Examples
 
+<!-- FIXME: New config schema -->
 ```yaml
 mappings:
   axis:
@@ -149,6 +175,7 @@ Maximum deviation from 0 input, where the stick is "dead" (should be reading 0).
 
 Example
 
+<!-- FIXME: New config schema -->
 ```yaml
 mappings:
   axis:
@@ -172,6 +199,7 @@ Note: Do not invert weight, as inverting weight as well will revert change the s
 
 Example
 
+<!-- FIXME: New config schema -->
 ```yaml
 mappings:
   axis:
@@ -202,6 +230,7 @@ The sign of either `min` or `max` also decided the sign on the slope. We can cre
 
 Example
 
+<!-- FIXME: New config schema -->
 ```yaml
 mappings:
   axis:

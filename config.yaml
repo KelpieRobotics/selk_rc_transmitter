@@ -1,111 +1,203 @@
-link:
-  protocol: udp
-  target: 192.168.137.255:5005
 gamepad: Xbox360
+inputs:
+  axes:
+    LEFT-X:
+      mode: normal
+      weight: 100
+      min: -100
+      max: 100
+      center: 0
+      deadband: 7
+      neutral: 0
+
+      mapping: yaw
+    LEFT-Y:
+      mode: normal
+      weight: 100
+      min: 100
+      max: -100
+      center: 0
+      deadband: 7
+      neutral: 0
+
+      mapping: heave
+    RIGHT-X:
+      mode: normal
+      weight: 100
+      min: -100
+      max: 100
+      center: 0
+      deadband: 7
+      neutral: 0
+
+      mapping: sway
+    RIGHT-Y:
+      mode: normal
+      weight: 100
+      min: 100
+      max: -100
+      center: 0
+      deadband: 7
+      neutral: 0
+
+      mapping: surge
+    6: # D-PAD Left-Right
+      mode: normal
+      weight: 100
+      min: -100
+      max: 100
+      center: 0
+      deadband: 0
+      neutral: 0
+
+      mapping: camera_pan
+    7: # D-PAD Up-Down
+      mode: normal
+      weight: 100
+      min: 100
+      max: -100
+      center: 0
+      deadband: 0
+      neutral: 0
+
+      mapping: camera_tilt
+    LT:
+      mode: normal
+      weight: 50
+      min: 100
+      max: -100
+      center: 0
+      deadband: 0
+      neutral: -1.0
+
+      mapping: pitch.left
+    RT:
+      mode: normal
+      weight: 50
+      min: -100
+      max: 100
+      center: 0
+      deadband: 0
+      neutral: -1.0
+
+      mapping: pitch.right
+  buttons:
+    # A:
+    #   mode: normal
+    #   pressed: 100
+    #   released: -100
+
+    #   mapping:
+    # B:
+    #   mode: normal
+    #   pressed: 100
+    #   released: -100
+
+    #   mapping:
+    # X:
+    #   mode: normal
+    #   pressed: 100
+    #   released: -100
+
+    #   mapping:
+    # Y:
+    #   mode: normal
+    #   pressed: 100
+    #   released: -100
+
+    #   mapping:
+    LA:
+      mode: normal
+      pressed: 100
+      released: -100
+
+      mapping: camera_pan.reset
+    RA:
+      mode: normal
+      pressed: 100
+      released: -100
+
+      mapping: camera_tilt.reset
+    LB:
+      mode: normal
+      pressed: -10
+      released: 0
+
+      mapping: roll.left
+    RB:
+      mode: normal
+      pressed: 10
+      released: 0
+
+      mapping: roll.right
+    # BACK:
+    #   mode: normal
+    #   pressed: 100
+    #   released: -100
+
+    #   mapping:
+    # START:
+    #   mode: normal
+    #   pressed: 100
+    #   released: -100
+
+    #   mapping:
 mappings:
-  axis:
-    "LEFT-X":
-      channel: rc4
-      mode: passthrough
-      weight: 100
-      min: -100
-      max: 100
-      center: 0
-      deadband: 7
-    "LEFT-Y":
-      channel: rc3
-      mode: passthrough
-      weight: 100
-      min: 100
-      max: -100
-      center: 0
-      deadband: 7
-    "RIGHT-X":
-      channel: rc1
-      mode: passthrough
-      weight: 100
-      min: -100
-      max: 100
-      center: 0
-      deadband: 7
-    "RIGHT-Y":
-      channel: rc2
-      mode: passthrough
-      weight: 100
-      min: 100
-      max: -100
-      center: 0
-      deadband: 7
-    "6": # D-PAD
-      channel: rc5
-      mode: passthrough
-      weight: 100
-      min: -100
-      max: 100
-      center: 0
-      deadband: 0
-    "7": # D-PAD
-      channel: rc6
-      mode: passthrough
-      weight: 100
-      min: -100
-      max: 100
-      center: 0
-      deadband: 0
-    "LT":
-      channel: rc7
-      mode: passthrough
-      weight: 100
-      min: -100
-      max: 100
-      center: 0
-      deadband: 0
-    "RT":
-      channel: rc8
-      mode: passthrough
-      weight: 100
-      min: -100
-      max: 100
-      center: 0
-      deadband: 0
-  button:
-    "A":
-      channel: rc9
-      mode: momentary
-      pressed: 100
-      released: -100
-    "B":
-      channel: rc10
-      mode: momentary
-      pressed: 100
-      released: -100
-    "X":
-      channel: rc11
-      mode: momentary
-      pressed: 100
-      released: -100
-    "Y":
-      channel: rc12
-      mode: momentary
-      pressed: 100
-      released: -100
-    "LB":
-      channel: rc13
-      mode: momentary
-      pressed: 100
-      released: -100
-    "RB":
-      channel: rc14
-      mode: momentary
-      pressed: 100
-      released: -100
-    "BACK":
-      channel: rc15
-      mode: momentary
-      pressed: 100
-      released: -100
-    "START":
-      channel: rc16
-      mode: momentary
-      pressed: 100
-      released: -100
+  roll:
+    type: add
+    output: udp.rc2
+    min: -100
+    max: 100
+  pitch:
+    type: add
+    output: udp.rc1
+    min: -100
+    max: 100
+  yaw:
+    type: passthrough
+    output: udp.rc4
+    min: -100
+    max: 100
+  heave: # Up and Down
+    type: passthrough
+    output: udp.rc3
+    min: -100
+    max: 100
+  surge: # Forwards and Backwards
+    type: passthrough
+    output: udp.rc5
+    min: -100
+    max: 100
+  sway: # Side to Side
+    type: passthrough
+    output: udp.rc6
+    min: -100
+    max: 100
+  camera_pan:
+    type: relative
+    output: udp.rc7
+    min: -100
+    max: 100
+    center: 0
+    speed: 5
+  camera_tilt:
+    type: relative
+    output: udp.rc8
+    min: -100
+    max: 100
+    center: 0
+    speed: 5
+  attatchment_servo:
+    type: relative
+    output: udp.rc9
+    min: -100
+    max: 100
+    center: 0
+    speed: 5
+
+outputs:
+  udp:
+    type: selk_udp
+    target:
+      host: 192.168.137.20
+      port: 5005

@@ -1,13 +1,13 @@
 import configs
-import mappers
+import inputters
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 # TODO: argparse
 
-def create_subplot(subplot_axes, x_values, axis, axis_config):
-    y_values = [getattr(mappers, "axis_"+axis_config["mode"])(x, **axis_config) for x in x_values]
+def create_subplot(subplot_axes, x_values, axis, input: inputters.AxisInputter):
+    y_values = [input.transform(x) for x in x_values]
 
     subplot_axes.plot(x_values, y_values, 'b-', linewidth=2)
     subplot_axes.set_title(axis)
@@ -18,26 +18,26 @@ def create_subplot(subplot_axes, x_values, axis, axis_config):
     subplot_axes.axhline(y=0, color='black', linewidth=1.5, alpha=0.8)
     subplot_axes.axvline(x=0, color='black', linewidth=1.5, alpha=0.8)
 
-    subplot_axes.set_xlim(-100, 100)
+    subplot_axes.set_xlim(-1, 1)
     subplot_axes.set_ylim(-100, 100)
 
-config = configs.load_config('config.yaml')
+inputs = configs.load_config('config.yaml')[1]
 
-fig, axes = plt.subplots(len(config["mappings"]["axis"]), 1, figsize=(7, 6*len(config["mappings"]["axis"])))
+fig, axes = plt.subplots(len(inputs["axes"]), 1, figsize=(7, 6*len(inputs["axes"])))
 
 # Create x values in the domain [-1, 1]
-x_values = np.linspace(-100, 100, 1000)
+x_values = np.linspace(-1, 1, 1000)
 
-if len(config["mappings"]["axis"]) >= 1:
-    if len(config["mappings"]["axis"]) > 1:
+if len(inputs["axes"]) >= 1:
+    if len(inputs["axes"]) > 1:
         i = 0
-        for axis in config["mappings"]["axis"]:
-            create_subplot(axes[i], x_values, axis, config["mappings"]["axis"][axis])
+        for axis in inputs["axes"]:
+            create_subplot(axes[i], x_values, axis, inputs["axes"][axis])
 
             i += 1
     else:
-        axis = set(config["mappings"]["axis"].keys()).pop()
-        create_subplot(axes, x_values, axis, config["mappings"]["axis"][axis])
+        axis = set(inputs["axes"].keys()).pop()
+        create_subplot(axes, x_values, axis, inputs["axes"][axis])
 
     plt.tight_layout()
     plt.show()

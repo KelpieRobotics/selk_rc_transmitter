@@ -65,7 +65,7 @@ class ImageStitchSpecialFunction(SpecialFunction):
         images_taken = 0
         self.state = ImageStitchSpecialFunction.State.CAPTURE
 
-        for tilt_input in range(self.mappings["tilt"]["min"], self.mappings["tilt"]["max"]+1, self.mappings["tilt"]["step"]):
+        for tilt_input in range(self.mappings["tilt"]["min"], self.mappings["tilt"]["max"]+1, self.mappings["tilt"]["step"]) if self.mappings["tilt"] is not None else range(1):
             if self.mappings["tilt"] is not None: self.mappings["tilt"]["mapping"].map(tilt_input, "set")
 
             for pan_input in range(self.mappings["pan"]["min"], self.mappings["pan"]["max"]+1, self.mappings["pan"]["step"]):

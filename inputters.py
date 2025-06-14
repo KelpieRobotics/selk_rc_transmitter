@@ -2,9 +2,8 @@
 # TODO: Mapper interface
 # TODO: Expo
 
-from mappers import Mapper
+from custom_types import AxisInputter, ButtonInputter, Mapper, SpecialFunction
 
-from abc import ABC, abstractmethod
 import time
 
 
@@ -19,38 +18,9 @@ button_inputters = [
     "impulse"
 ]
 
-
-class Inputter(ABC):
-    def __init__(self, mapping: Mapper, mapping_label = None):
-        self.mapping = mapping
-        self.mapping_label = mapping_label
-
-    @abstractmethod
-    def process(self, value):
-        pass
-
-class AxisInputter(Inputter):
-    def __init__(self, mapping: Mapper, mapping_label = None, weight = 100, min = -100, max = 100, center = 0, deadband = 0, neutral = 0):
-        super().__init__(mapping, mapping_label)
-        self.weight = weight
-        self.min = min
-        self.max = max
-        self.center = center
-        self.deadband = deadband
-        self.neutral = neutral
-
-    @abstractmethod
-    def transform(self, value):
-        "Calculate the output based on a given input"
-        pass
-
-    def process(self, value):
-        return self.mapping.map(self.transform(value), self.mapping_label)
-
-
 class NormalAxisInputter(AxisInputter):
-    def __init__(self, mapping: Mapper, mapping_label = None, weight=100, min=-100, max=100, center=0, deadband=0, neutral = 0, **kwargs):
-        super().__init__(mapping, mapping_label, weight, min, max, center, deadband, neutral)
+    def __init__(self, mapping_or_function: Mapper | SpecialFunction, mapping_label = None, weight=100, min=-100, max=100, center=0, deadband=0, neutral = 0, **kwargs):
+        super().__init__(mapping_or_function, mapping_label, weight, min, max, center, deadband, neutral)
 
     def transform(self, value):
         value *= 100
@@ -98,8 +68,8 @@ class NormalAxisInputter(AxisInputter):
 
 
 class AbsoluteWeightAxisInputter(AxisInputter):
-    def __init__(self, mapping: Mapper, mapping_label = None, weight=100, min=-100, max=100, center=0, deadband=0, neutral = 0, **kwargs):
-        super().__init__(mapping, mapping_label, weight, min, max, center, deadband, neutral)
+    def __init__(self, mapping_or_function: Mapper | SpecialFunction, mapping_label = None, weight=100, min=-100, max=100, center=0, deadband=0, neutral = 0, **kwargs):
+        super().__init__(mapping_or_function, mapping_label, weight, min, max, center, deadband, neutral)
 
     def transform(self, value):
         value *= 100
@@ -146,8 +116,8 @@ class AbsoluteWeightAxisInputter(AxisInputter):
                     return output
 
 class ScaledWeightAxisInputter(AxisInputter):
-    def __init__(self, mapping: Mapper, mapping_label = None, min=-100, max=100, center=0, deadband=0, neutral = 0, **kwargs):
-        super().__init__(mapping, mapping_label, 100, min, max, center, deadband, neutral)
+    def __init__(self, mapping_or_function: Mapper | SpecialFunction, mapping_label = None, min=-100, max=100, center=0, deadband=0, neutral = 0, **kwargs):
+        super().__init__(mapping_or_function, mapping_label, 100, min, max, center, deadband, neutral)
 
     def transform(self, value):
         value *= 100
@@ -174,33 +144,25 @@ class ScaledWeightAxisInputter(AxisInputter):
                 return output
 
 
-class ButtonInputter(Inputter):
-    def __init__(self, mapping: Mapper, mapping_label = None, released=-100, pressed=100):
-        super().__init__(mapping, mapping_label)
-
-        self.released = released
-        self.pressed = pressed
-
-
 class NormalButtonInputter(ButtonInputter):
-    def __init__(self, mapping: Mapper, mapping_label = None, released=-100, pressed=100):
-        super().__init__(mapping, mapping_label, released, pressed)
+    def __init__(self, mapping_or_function: Mapper | SpecialFunction, mapping_label = None, released=-100, pressed=100, **kwargs):
+        super().__init__(mapping_or_function, mapping_label, released, pressed)
 
     def process(self, value):
-        return self.mapping.map(self.pressed if value else self.released, self.mapping_label)
+        return self.map(self.pressed if value else self.released, self.mapping_label)
 
 
 class ImpulseButtonInputter(ButtonInputter):
-    def __init__(self, mapping: Mapper, mapping_label = None, released=-100, pressed=100, delay=0.1):
-        super().__init__(mapping, mapping_label, released, pressed, self.mapping_label)
+    def __init__(self, mapping_or_function: Mapper | SpecialFunction, mapping_label = None, released=-100, pressed=100, delay=0.1, **kwargs):
+        super().__init__(mapping_or_function, mapping_label, released, pressed, self.mapping_label)
 
         self.delay = delay
 
     def process(self, value):
         if value:
-            if not self.mapping.map(self.pressed, self.mapping_label):
+            if not self.map(self.pressed, self.mapping_label):
                 return False
 
             time.sleep(self.delay)
 
-            return self.mapping.map(self.released, self.mapping_label)
+            return self.map(self.released, self.mapping_label)

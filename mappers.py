@@ -1,8 +1,6 @@
-from outputters import Outputter
+from custom_types import Mapper, Outputter
 
-from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import List
 
 
 mappers = [
@@ -12,41 +10,10 @@ mappers = [
     "toggle_latch"
 ]
 
-class Mapper(ABC):
-    def __init__(self, output: Outputter, output_label=None, min=-100, max=100, center=0, **kwargs):
-        self.output = output
-        self.output_label = output_label
-
-        self.min = min
-        self.max = max
-        self.center = center
-
-    def _clip_output(self, value):
-        if value >= 100 and self.max >= 100:
-            return 100
-        elif value >= self.max:
-            return self.max
-        elif value <= -100 and self.min <= -100:
-            return -100
-        elif value <= self.min:
-            return self.min
-        else:
-            return value
-
-    @abstractmethod
-    def map(self, input, label = None):
-        pass
-
-    @property
-    @abstractmethod # TODO: remove abstract, make default return empty list and allow Mappers that don't have special labels to just rely on base class implementation?
-    def labels(self) -> List[str]:
-        "Returns the list of special labels that can be used."
-
-        pass
-
-
-
 class PassthroughMapper(Mapper):
+    def __init__(self, output, output_label=None, min=-100, max=100, center=0, **kwargs):
+        super().__init__(output, output_label, min, max, center)
+
     def map(self, input, label = None):
         return self.output.output(self._clip_output(input), self.output_label)
 

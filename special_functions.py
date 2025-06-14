@@ -1,6 +1,5 @@
-from mappers import Mapper
+from custom_types import SpecialFunction, ImageStitchMappings
 
-from abc import ABC, abstractmethod
 
 # TODO: clean dependencies of legacy code at the bottom of the file
 
@@ -17,21 +16,10 @@ import os
 # import signal
 import subprocess
 
-class ImageStitchMapping(TypedDict):
-    mapping: Mapper
-    min: int | float
-    max: int | float
-    step: int | float
 
-class ImageStitchMappings(TypedDict):
-    pan: ImageStitchMapping
-    tilt: ImageStitchMapping | None
-
-class SpecialFunction(ABC):
-    @abstractmethod
-    def run(self):
-        "Run the special function"
-        pass
+special_functions = [
+    "image_stitch"
+]
 
 class ImageStitchSpecialFunction(SpecialFunction):
     class State(Enum):
@@ -47,12 +35,11 @@ class ImageStitchSpecialFunction(SpecialFunction):
                 case _:
                     raise NotImplementedError()
 
-    def __init__(self, mappings: ImageStitchMappings, port, output_dir, fps):
+    def __init__(self, mappings: ImageStitchMappings, port, output_dir, **kwargs):
 
         self.mappings = mappings
-        self.port = port
         self.output_dir = output_dir
-        self.fps = fps
+        self.port = port
 
         self.state = ImageStitchSpecialFunction.State.IDLE
 
@@ -80,7 +67,7 @@ class ImageStitchSpecialFunction(SpecialFunction):
                         "!", "h264parse",
                         "!", "avdec_h264",
                         "!", "videoconvert",
-                        "!", "videorate", f"max-rate={self.fps}",
+                        "!", "videorate", "max-rate=30",
                         "!", "jpegenc",
                         "!", f"filesink", f"location={self.output_dir}/{images_taken}.jpg"
                     ],
@@ -113,7 +100,7 @@ class ImageStitchSpecialFunction(SpecialFunction):
             [os.path.join(image_dir, f) for f in jpg_files],
             key=lambda f: int(os.path.splitext(os.path.basename(f))[0])
         )
-        
+
         # Run the command and return
         proc = subprocess.Popen(
             [
@@ -170,7 +157,7 @@ class ImageStitchSpecialFunction(SpecialFunction):
 
 #                 del stitching_dirs[i]
 #                 del stitching_threads[i]
-        
+
 #         print(f"stitching threads: {stitching_threads}")
 
 #         print(f"current state - {state}\t previous state - {prev_state}")
@@ -180,7 +167,7 @@ class ImageStitchSpecialFunction(SpecialFunction):
 #             case (None | State.CAPTURE , State.IDLE): # next state is Capture
 #                 capture_dir = f"{int(time())}"
 #                 create_dir(f"./images/{capture_dir}")
-                
+
 #                 worker_thread = Process(
 #                     target = capture_images,
 #                     args=[f"./images/{capture_dir}", 5702, 1]
@@ -189,15 +176,15 @@ class ImageStitchSpecialFunction(SpecialFunction):
 #                 worker_thread.start()
 
 #                 capture_thread = worker_thread
-            
+
 #             # Start stitching images
 #             case (State.IDLE, State.CAPTURE):
 #                 print("TIME TO STITCH")
-#                 print("Killing capture thread...")                
+#                 print("Killing capture thread...")
 #                 capture_thread.terminate()
 #                 capture_thread.join()
 #                 capture_thread = None
-                
+
 #                 worker_thread = Process(
 #                     target = stitch_images,
 #                     args=[capture_dir]
@@ -209,7 +196,7 @@ class ImageStitchSpecialFunction(SpecialFunction):
 #                 stitching_threads.append(worker_thread)
 #             case _:
 #                 raise NotImplementedError()
-        
+
 #         # update state
 #         print("updating state...")
 #         prev_state = state

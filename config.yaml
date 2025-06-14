@@ -204,8 +204,8 @@ special_functions:
         min: -100
         max: 100
         step: 10
-      tilt: null
-    images_dir: "{current_time}_panorama" # TODO: create a list of available variables for substitution
+    output_dir: "{current_time}_panorama" # TODO: create a list of available variables for substitution
+    port: 5702
 
 outputs:
   udp:

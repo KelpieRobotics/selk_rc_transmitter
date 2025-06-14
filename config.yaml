@@ -82,12 +82,12 @@ inputs:
 
       mapping: pitch.right
   buttons:
-    # A:
-    #   mode: normal
-    #   pressed: 100
-    #   released: -100
+    A:
+      mode: normal
+      pressed: 100
+      released: -100
 
-    #   mapping:
+      mapping: attatchment_servo
     # B:
     #   mode: normal
     #   pressed: 100
@@ -145,12 +145,12 @@ inputs:
 mappings:
   roll:
     type: add
-    output: udp.rc2
+    output: udp.rc1
     min: -100
     max: 100
   pitch:
     type: add
-    output: udp.rc1
+    output: udp.rc2
     min: -100
     max: 100
   yaw:
@@ -188,12 +188,10 @@ mappings:
     center: 0
     speed: 5
   attatchment_servo:
-    type: relative
+    type: toggle_latch
     output: udp.rc9
     min: -100
     max: 100
-    center: 0
-    speed: 5
 
 outputs:
   udp:

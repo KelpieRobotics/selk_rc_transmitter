@@ -102,16 +102,22 @@ class ImageStitchSpecialFunction(SpecialFunction):
 
         current_dir = os.path.dirname(__file__)
 
-        image_dir = Path(f"./images/{sub_dir}")
-        jpg_files = [f for f in image_dir.iterdir() if f.suffix.lower() == ".jpg"]
-        sorted_images = [str(path) for path in sorted(jpg_files, key=lambda f: int(f.stem))]
+        image_dir = os.path.join(current_dir, "images", sub_dir)
+        jpg_files = [
+            f for f in os.listdir(image_dir)
+            if f.lower().endswith(".jpg")
+        ]
 
-        # print(sorted_images)
-
+        # Sort based on filename stem (without extension)
+        sorted_images = sorted(
+            [os.path.join(image_dir, f) for f in jpg_files],
+            key=lambda f: int(os.path.splitext(os.path.basename(f))[0])
+        )
+        
         # Run the command and return
         proc = subprocess.Popen(
             [
-                f"{os.path.join(current_dir, "xpano", "build", "Xpano")}",
+                os.path.join(current_dir, "xpano", "build", "Xpano"),
                 *sorted_images,
                 "--gui"
             ],

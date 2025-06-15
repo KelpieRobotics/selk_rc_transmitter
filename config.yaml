@@ -130,12 +130,12 @@ inputs:
       released: 0
 
       mapping: roll.right
-    # BACK:
-    #   mode: normal
-    #   pressed: 100
-    #   released: -100
+    BACK:
+      mode: normal
+      pressed: 100
+      released: -100
 
-    #   mapping:
+      mapping: panorama
     # START:
     #   mode: normal
     #   pressed: 100
@@ -203,8 +203,8 @@ special_functions:
         mapping: camera_pan
         min: -100
         max: 100
-        step: 10
-    output_dir: "{current_time}_panorama" # TODO: create a list of available variables for substitution
+        step: 40
+    output_dir: "panorama" # TODO: create a list of available variables for substitution
     port: 5702
 
 outputs:

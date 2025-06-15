@@ -168,7 +168,7 @@ def load_config(config_filename):
                         parse_sucessful = False
                         break
 
-                    # special_function_config["mappings"][mapping]["mapping"] = mappings[special_function_config["mappings"][mapping]["mapping"]]
+                    special_function_config["mappings"][mapping]["mapping"] = mappings[special_function_config["mappings"][mapping]["mapping"]]
 
                     default_mapping_config: SpecialFunctionMapping = deepcopy(globals()["default_"+special_function_config["function"]+"_mapping_config"])
                     for param in default_mapping_config:

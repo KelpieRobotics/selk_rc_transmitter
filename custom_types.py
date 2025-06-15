@@ -107,8 +107,8 @@ class AxisInputter(Inputter):
     def map(self, value, label):
         if isinstance(self.mapping, Mapper):
             self.mapping.map(value, label)
-        elif isinstance(self.mapping, SpecialFunction) and value > self.center:
-            self.mapping.run()
+        elif isinstance(self.mapping, SpecialFunction):
+            if value > self.center: self.mapping.run()
         else: raise ValueError("self.mapping is not a Mapper nor SpecialFunction.")
 
 class ButtonInputter(Inputter):
@@ -121,8 +121,8 @@ class ButtonInputter(Inputter):
     def map(self, value, label):
         if isinstance(self.mapping, Mapper):
             self.mapping.map(value, label)
-        elif isinstance(self.mapping, SpecialFunction) and value:
-            self.mapping.run()
+        elif isinstance(self.mapping, SpecialFunction):
+            if value == self.pressed: self.mapping.run()
         else: raise ValueError("self.mapping is not a Mapper nor SpecialFunction.")
 
 # Config types

@@ -203,7 +203,7 @@ special_functions:
         mapping: camera_pan
         min: -100
         max: 100
-        step: 40
+        step: 16
     output_dir: "panorama" # TODO: create a list of available variables for substitution
     port: 5702
 

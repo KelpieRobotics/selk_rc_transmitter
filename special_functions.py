@@ -88,15 +88,17 @@ class ImageStitchSpecialFunction(SpecialFunction):
             for pan_input in range(self.mappings["pan"]["min"], self.mappings["pan"]["max"]+1, self.mappings["pan"]["step"]):
                 self.mappings["pan"]["mapping"].map(pan_input, "set")
 
+                sleep(2) # Let the stream stabilize before capturing
+
                 print(f"Capturing image {images_taken}")
                 proc = subprocess.Popen(
                     [
                         "gst-launch-1.0", "-e",
-                        "udpsrc", f"port={self.port}", "caps=application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96",
-                        "!", "rtph264depay",
+                        "udpsrc", f"port={self.port}", "caps=\"application/x-rtp,media=video,clock-rate=90000,encoding-name=(string)H264,payload=(int)96,width=(int)1920,height=(int)1080\"",
+                        "!", "rtph264depay", "request-keyframe=true", "wait-for-keyframe=true",
                         "!", "h264parse",
-                        "!", "avdec_h264",
-                        "!", "jpegenc", "snapshot=true",
+                        "!", "avdec_h264", "output-corrupt=false",
+                        "!", "jpegenc",  "snapshot=true", "quality=97",
                         "!", "filesink", f"location={os.path.join(images_dir, str(images_taken).zfill(3))}.jpg"
                     ],
                     preexec_fn=os.setsid  # UNIX/WSL: new process group for signaling
@@ -113,7 +115,6 @@ class ImageStitchSpecialFunction(SpecialFunction):
                     self.state = ImageStitchSpecialFunction.State.IDLE
                     return False
 
-                sleep(1)
                 images_taken += 1
 
         jpg_files = [f for f in os.listdir(images_dir) if f.lower().endswith(".jpg")]

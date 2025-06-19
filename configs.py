@@ -53,14 +53,17 @@ default_mapping_config: MappingConfig = {
 
 default_image_stitch_config: ImageStitchSpecialFunctionConfig = {
     "mappings": None,
-    "output_dir": "panorama",
-    "port": 5702
+    "port": 5702,
+    "ptgui_exec_file": "~/.local/share/ptgui/PTGui",
+    "output_dir": "panorama"
 }
 
 default_image_stitch_mapping_config: ImageStitchSpecialFunctionMapping = {
     "mapping": None,
+    "mode": "absolute",
     "min": -100,
     "max": 100,
+    "center": 0,
     "step": 20
 }
 
@@ -202,7 +205,7 @@ def load_config(config_filename):
                     config["inputs"]["axes"][axis] = deepcopy(default_axis_input_config)
                     config["inputs"]["axes"][axis]["mapping"] = axis_mapping
 
-                elif type(config["inputs"]["axes"][axis]) is AxisInputConfig:
+                elif type(config["inputs"]["axes"][axis]) is dict: # FIXME: it should be AxisInputConfig
                     if config["inputs"]["axes"][axis]["mapping"] is None:
                         print(axis, "does not have a mapping specified. Discarding axis...")
 
@@ -241,14 +244,14 @@ def load_config(config_filename):
 
         # Button inputs
         if "buttons" in config["inputs"]:
-            buttons_keys = config["inputs"]["buttons"].keys()
+            buttons_keys = set(config["inputs"]["buttons"].keys())
             for button in buttons_keys:
                 if type(config["inputs"]["buttons"][button]) is str or type(config["inputs"]["buttons"][button]) is int:
                     button_mapping = config["inputs"]["buttons"][button]
 
                     config["inputs"]["buttons"][button] = deepcopy(default_button_input_config)
                     config["inputs"]["buttons"][button]["mapping"] = button_mapping
-                elif type(config["inputs"]["buttons"][button]) is ButtonInputConfig:
+                elif type(config["inputs"]["buttons"][button]) is dict: # FIXME: It should be ButtonInputConfig
                     if "mapping" not in config["inputs"]["buttons"][button] or config["inputs"]["buttons"][button]["mapping"] is None:
                         print(button, "does not have a mapping specified. Discarding button...")
 

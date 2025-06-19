@@ -1,57 +1,71 @@
 gamepad: Xbox360
 inputs:
   axes:
-    LEFT-X:
-      mode: normal
-      weight: 100
-      min: -100
-      max: 100
-      center: 0
-      deadband: 7
-      neutral: 0
-
-      mapping: yaw
-    LEFT-Y:
-      mode: normal
-      weight: 100
-      min: 100
-      max: -100
-      center: 0
-      deadband: 7
-      neutral: 0
-
-      mapping: heave
-    RIGHT-X:
-      mode: normal
-      weight: 100
-      min: -100
-      max: 100
-      center: 0
-      deadband: 7
-      neutral: 0
-
-      mapping: sway
-    RIGHT-Y:
-      mode: normal
-      weight: 100
-      min: 100
-      max: -100
-      center: 0
-      deadband: 7
-      neutral: 0
-
-      mapping: surge
+    # LEFT-X:
+    #   mapping: yaw
+    #   mode: normal
+    #   weight: 100
+    #   min: -100
+    #   max: 100
+    #   center: 0
+    #   deadband: 7
+    #   neutral: 0
+    # LEFT-Y:
+    #   mapping: heave
+    #   mode: normal
+    #   weight: 100
+    #   min: 100
+    #   max: -100
+    #   center: 0
+    #   deadband: 7
+    #   neutral: 0
+    # RIGHT-X:
+    #   mapping: sway
+    #   mode: normal
+    #   weight: 100
+    #   min: -100
+    #   max: 100
+    #   center: 0
+    #   deadband: 7
+    #   neutral: 0
+    # RIGHT-Y:
+    #   mapping: surge
+    #   mode: normal
+    #   weight: 100
+    #   min: 100
+    #   max: -100
+    #   center: 0
+    #   deadband: 7
+    #   neutral: 0
+    # LT:
+    #   mapping: pitch.left
+    #   mode: normal
+    #   weight: 50
+    #   min: 100
+    #   max: -100
+    #   center: 0
+    #   deadband: 0
+    #   neutral: -1.0
+    # RT:
+    #   mapping: pitch.right
+    #   mode: normal
+    #   weight: 50
+    #   min: -100
+    #   max: 100
+    #   center: 0
+    #   deadband: 0
+    #   neutral: -1.0
     6: # D-PAD Left-Right
-      mode: normal
-      weight: 100
-      min: -100
-      max: 100
-      center: 0
-      deadband: 0
-      neutral: 0
-
       mapping: camera_pan
+      mode: normal
+      weight: 100
+      min: -100
+      max: 100
+      center: 0
+      deadband: 0
+      neutral: 0
     7: # D-PAD Up-Down
+      mapping: camera_tilt
       mode: normal
       weight: 100
       min: 100
@@ -59,9 +73,8 @@ inputs:
       center: 0
       deadband: 0
       neutral: 0
-
-      mapping: camera_tilt
     LT:
+      mapping: attatchment_servo.left
       mode: normal
       weight: 50
       min: 100
@@ -69,9 +82,8 @@ inputs:
       center: 0
       deadband: 0
       neutral: -1.0
-
-      mapping: pitch.left
     RT:
+      mapping: attatchment_servo.right
       mode: normal
       weight: 50
       min: -100
@@ -79,15 +91,13 @@ inputs:
       center: 0
       deadband: 0
       neutral: -1.0
-
-      mapping: pitch.right
   buttons:
     # A:
     #   mode: normal
     #   pressed: 100
     #   released: -100
 
-    #   mapping:
+    #   mapping: heave
     # B:
     #   mode: normal
     #   pressed: 100
@@ -100,42 +110,37 @@ inputs:
     #   released: -100
 
     #   mapping:
-    # Y:
+    Y:
+      mapping: panorama
+      mode: normal
+      pressed: 100
+      released: -100
+    LA:
+      mapping: camera_pan.reset
+      mode: normal
+      pressed: 100
+      released: -100
+    RA:
+      mapping: camera_tilt.reset
+      mode: normal
+      pressed: 100
+      released: -100
+    LB:
+      mapping: roll.left
+      mode: normal
+      pressed: -100
+      released: 0
+    RB:
+      mapping: roll.right
+      mode: normal
+      pressed: 100
+      released: 0
+    # BACK:
     #   mode: normal
     #   pressed: 100
     #   released: -100
 
-    #   mapping:
-    LA:
-      mode: normal
-      pressed: 100
-      released: -100
-
-      mapping: camera_pan.reset
-    RA:
-      mode: normal
-      pressed: 100
-      released: -100
-
-      mapping: camera_tilt.reset
-    LB:
-      mode: normal
-      pressed: -10
-      released: 0
-
-      mapping: roll.left
-    RB:
-      mode: normal
-      pressed: 10
-      released: 0
-
-      mapping: roll.right
-    BACK:
-      mode: normal
-      pressed: 100
-      released: -100
-
-      mapping: panorama
+    #   mapping: panorama
     # START:
     #   mode: normal
     #   pressed: 100
@@ -175,25 +180,24 @@ mappings:
     max: 100
   camera_pan:
     type: relative
-    output: udp.rc7
+    output: udp.rc12
     min: -100
     max: 100
     center: 0
     speed: 5
   camera_tilt:
     type: relative
-    output: udp.rc8
+    output: udp.rc13
     min: -100
     max: 100
     center: 0
     speed: 5
   attatchment_servo:
-    type: relative
-    output: udp.rc9
+    type: add
+    output: udp.rc14
     min: -100
     max: 100
     center: 0
-    speed: 5
 
 special_functions:
   panorama:
@@ -205,7 +209,7 @@ special_functions:
         max: 100
         step: 16
     output_dir: "panorama" # TODO: create a list of available variables for substitution
-    port: 5702
+    port: 5602
 
 outputs:
   udp:

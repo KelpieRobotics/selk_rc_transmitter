@@ -1,5 +1,5 @@
-from custom_types import SpecialFunction, ImageStitchMappings
-
+from custom_types import SpecialFunction, ImageStitchSpecialFunctionMappings, ImageStitchSpecialFunctionMapping
+from utils import resolve_path
 
 # TODO: clean dependencies of legacy code at the bottom of the file
 
@@ -35,38 +35,35 @@ class ImageStitchSpecialFunction(SpecialFunction):
                 case _:
                     raise NotImplementedError()
 
-    def __init__(self, mappings: ImageStitchMappings, port: int | str, output_dir: str | None = os.path.join(os.path.dirname(__file__), "image_stitch"), **kwargs):
+    def __init__(self, mappings: ImageStitchSpecialFunctionMappings, port: int | str, ptgui_exec_file: str = "~/.local/share/ptgui/PTGui", output_dir: str | None = os.path.join(os.path.dirname(__file__), "panorama"), **kwargs):
         self.mappings = mappings
         self.port = port
-
-        # Default path
-        if output_dir == "" or output_dir is None:
-            self.output_dir = os.path.join(os.path.dirname(__file__), "image_stitch", "")
-        # Absolute path
-        elif os.path.isabs(output_dir):
-            self.output_dir = os.path.join(os.path.expandvars(output_dir), "")
-        # Home dir path
-        elif output_dir.startswith("~"):
-            self.output_dir = os.path.expanduser(
-                os.path.expandvars(
-                    os.path.join(
-                        os.path.dirname(__file__),
-                        output_dir,
-                        ""
-                    )
-                )
-            )
-        # Relative path
-        else:
-            self.output_dir = os.path.expandvars(
-                os.path.join(
-                    os.path.dirname(__file__), # Use the selk_rc_transmitter dir instead of pwd for consistency
-                    output_dir,
-                    ""
-                )
-            )
+        self.ptgui_exec_file = resolve_path(ptgui_exec_file, "~/.local/share/ptgui/PTGui")
+        self.output_dir = resolve_path(output_dir, os.path.join(os.path.dirname(__file__), "panorama"))
 
         self.state = ImageStitchSpecialFunction.State.IDLE
+
+    def __map(mapping: ImageStitchSpecialFunctionMapping, value):
+        if mapping["mode"] == "absolute":
+            mapping["mapping"].map(value, "set")
+
+        elif mapping["mode"] == "relative":
+            mapping["mapping"].map(value)
+            sleep(1)
+            mapping["mapping"].map(mapping["center"])
+
+        else:
+            raise ValueError(mapping["mode"], "is not valid ImageStitchSpecialFunctionMapping[\"mode\"] value")
+
+    def __reset(mapping: ImageStitchSpecialFunctionMapping):
+        if mapping["mode"] == "absolute":
+            mapping["mapping"].map(100, "reset")
+
+        elif mapping["mode"] == "relative":
+            pass
+
+        else:
+            raise ValueError(mapping["mode"], "is not valid ImageStitchSpecialFunctionMapping[\"mode\"] value")
 
     def run(self):
         images_dir = os.path.join(self.output_dir, "images")
@@ -83,10 +80,10 @@ class ImageStitchSpecialFunction(SpecialFunction):
         self.state = ImageStitchSpecialFunction.State.CAPTURE
 
         for tilt_input in range(self.mappings["tilt"]["min"], self.mappings["tilt"]["max"]+1, self.mappings["tilt"]["step"]) if "tilt" in self.mappings and self.mappings["tilt"] is not None else range(1):
-            if "tilt" in self.mappings and self.mappings["tilt"] is not None: self.mappings["tilt"]["mapping"].map(tilt_input, "set")
+            if "tilt" in self.mappings and self.mappings["tilt"] is not None: ImageStitchSpecialFunction.__map(self.mappings["tilt"], tilt_input)
 
             for pan_input in range(self.mappings["pan"]["min"], self.mappings["pan"]["max"]+1, self.mappings["pan"]["step"]):
-                self.mappings["pan"]["mapping"].map(pan_input, "set")
+                ImageStitchSpecialFunction.__map(self.mappings["pan"], pan_input)
 
                 sleep(2) # Let the stream stabilize before capturing
 
@@ -101,7 +98,7 @@ class ImageStitchSpecialFunction(SpecialFunction):
                         "!", "jpegenc",  "snapshot=true", "quality=97",
                         "!", "filesink", f"location={os.path.join(images_dir, str(images_taken).zfill(3))}.jpg"
                     ],
-                    preexec_fn=os.setsid  # UNIX/WSL: new process group for signaling
+                    # preexec_fn=os.setsid  # UNIX/WSL: new process group for signaling
                 )
 
                 gst_rc = proc.wait()
@@ -109,8 +106,8 @@ class ImageStitchSpecialFunction(SpecialFunction):
                 if gst_rc != 0:
                     print(f"Gstreamer exited with code {gst_rc}. Stopping capture...")
 
-                    self.mappings["pan"]["mapping"].map(100, "reset")
-                    if "tilt" in self.mappings and self.mappings["tilt"] is not None: self.mappings["tilt"]["mapping"].map(100, "reset")
+                    ImageStitchSpecialFunction.__reset(self.mappings["pan"])
+                    if "tilt" in self.mappings and self.mappings["tilt"] is not None: ImageStitchSpecialFunction.__reset(self.mappings["tilt"])
 
                     self.state = ImageStitchSpecialFunction.State.IDLE
                     return False
@@ -125,11 +122,27 @@ class ImageStitchSpecialFunction(SpecialFunction):
         # Run the command and return
         proc = subprocess.Popen(
             [
-                os.path.join(os.path.abspath(os.path.dirname(__file__)), "xpano", "build", "Xpano"),
+                self.ptgui_exec_file,
+                "-createproject",
                 *sorted_images,
-                "--gui"
+                "-output", os.path.join(self.output_dir, "panorama.pts"),
+                # "-template", os.path.join(os.path.dirname(__file__), "template.pts"),
+                "-stitchnogui", os.path.join(self.output_dir, "panorama.pts")
             ],
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            # stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
 
+        proc.wait()
+
+        proc = subprocess.Popen(
+            [
+                "xdg-open",
+                os.path.join(self.output_dir, "panorama.jpg")
+            ],
+            # stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+        )
+
+        ImageStitchSpecialFunction.__reset(self.mappings["pan"])
+        if "tilt" in self.mappings and self.mappings["tilt"] is not None: ImageStitchSpecialFunction.__reset(self.mappings["tilt"])
         self.state = ImageStitchSpecialFunction
         print("Capture complete")

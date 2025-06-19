@@ -106,9 +106,9 @@ class AxisInputter(Inputter):
 
     def map(self, value, label):
         if isinstance(self.mapping, Mapper):
-            self.mapping.map(value, label)
+            return self.mapping.map(value, label)
         elif isinstance(self.mapping, SpecialFunction):
-            if value > self.center: self.mapping.run()
+            if value > self.center: return self.mapping.run()
         else: raise ValueError("self.mapping is not a Mapper nor SpecialFunction.")
 
 class ButtonInputter(Inputter):
@@ -120,9 +120,9 @@ class ButtonInputter(Inputter):
 
     def map(self, value, label):
         if isinstance(self.mapping, Mapper):
-            self.mapping.map(value, label)
+            return self.mapping.map(value, label)
         elif isinstance(self.mapping, SpecialFunction):
-            if value == self.pressed: self.mapping.run()
+            if value == self.pressed: return self.mapping.run()
         else: raise ValueError("self.mapping is not a Mapper nor SpecialFunction.")
 
 # Config types
@@ -171,16 +171,19 @@ class SpecialFunctionConfig(TypedDict):
 
 ### Image Stitch configs
 class ImageStitchSpecialFunctionMapping(SpecialFunctionMapping, total = False):
+    mode: str
     min: int | float
     max: int | float
     step: int | float
+    center: int | float
 
-class ImageStitchMappings(TypedDict, total = False):
+class ImageStitchSpecialFunctionMappings(TypedDict, total = False):
     pan: Required[ImageStitchSpecialFunctionMapping | str | int]
     tilt: ImageStitchSpecialFunctionMapping | str | int | None
 
 class ImageStitchSpecialFunctionConfig(SpecialFunctionConfig):
-    mappings: ImageStitchMappings
+    mappings: ImageStitchSpecialFunctionMappings
+    ptgui_exec_file: str
     output_dir: str
     port: int
 

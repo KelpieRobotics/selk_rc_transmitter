@@ -73,7 +73,8 @@ class AddMapper(Mapper):
         elif label == "right":
             self.right = input
         else:
-            # TODO: Log unknown label
+            print("Add Mapper: Unknown label")
+            # TODO: return error
             pass
 
         output = self.left + self.right

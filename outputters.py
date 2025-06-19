@@ -1,50 +1,19 @@
 import sys
 import os.path
-from abc import ABC, abstractmethod
-from typing import TypedDict, List
-import socket
 
 # Make sure to run scripts/install.sh to install dependencies and build message
 sys.path.append(os.path.abspath("selk_rc_msgs/build/python"))
 
 import rc_channels_pb2
 
+from custom_types import UdpOutputter, NetworkTarget
 
 outputters = [
     "selk_udp"
 ]
 
-class NetworkTarget(TypedDict):
-    host: str
-    port: int
-
-class Outputter(ABC):
-    @abstractmethod
-    def output(self, value, label = None):
-        "Transmits a mapped value. Use `label` to specify which channel to use."
-
-        pass
-
-    @property
-    @abstractmethod # TODO: remove abstract, make default return empty list and allow Outputters that don't have special labels to just rely on base class implementation?
-    def labels(self)-> List[str]:
-        "Returns the list of special labels that can be used."
-
-        pass
-
-# TODO: Add NetworkOutputter in between or would it be too abstracted?
-
-class UdpOutputter(Outputter):
-    def __init__(self, target: NetworkTarget):
-        self.target = target
-
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-    def send(self, data):
-        return self.sock.sendto(data, (self.target["host"], self.target["port"])) == len(data)
-
 class SelkUdpOutputter(UdpOutputter):
-    def __init__(self, target):
+    def __init__(self, target: NetworkTarget, **kwargs):
         super().__init__(target)
 
         self.msg = rc_channels_pb2.RCChannels()
@@ -53,6 +22,17 @@ class SelkUdpOutputter(UdpOutputter):
         for channel in self.labels:
             print(f"\t{channel}:\t{getattr(self.msg, channel, None)}")
         print("---")
+
+    def __map_ardupilot_pwm(value):
+        """
+        Ardusub allows adds a 10% margin on each side of the input range in case of signal loss.
+
+        This function maps the value to the 10%-90% range which is 1000-2000us range in ardupilot.
+        """
+        return 8 * value
+
+    def __map_full_range(value):
+        return 10 * value
 
     def output(self, value, label: str | None = None):
         if label is None or label == "":
@@ -63,9 +43,11 @@ class SelkUdpOutputter(UdpOutputter):
         if label not in self.labels:
             print(label, "is not a valid channel")
 
-        setattr(self.msg, label, int(value*10))
+        # setattr(self.msg, label, int(SelkUdpOutputter.__map_ardupilot_pwm(value)))
+        setattr(self.msg, label, int(SelkUdpOutputter.__map_full_range(value)))
 
         # self.__print_msg()
+        # print(self.msg.SerializeToString().hex())
 
         return self.send(self.msg.SerializeToString())
 

@@ -10,7 +10,6 @@ import time
 # TODO: asyncio
 
 
-
 def reset_inputs():
     for axis in inputs["axes"]:
         inputs["axes"][axis].process(inputs["axes"][axis].neutral)
@@ -18,9 +17,9 @@ def reset_inputs():
     for button in inputs["buttons"]:
         inputs["buttons"][button].process(False)
 
-
 if __name__ == "__main__":
-    config, inputs, mappings, outputs = configs.load_config('config.yaml') # TODO: Config command-line argument
+
+    config, inputs, mappings, functions, outputs = configs.load_config('config.yaml') # TODO: Config command-line argument
 
     # print("Config")
     # pretty_print(config)
@@ -32,6 +31,10 @@ if __name__ == "__main__":
 
     # print("Mappings")
     # pretty_print({mapping: str(mappings[mapping]) for mapping in mappings})
+    # print()
+
+    # print("Special Functions")
+    # pretty_print({function: str(functions[function]) for function in functions})
     # print()
 
     # print("Outputs")
@@ -65,6 +68,7 @@ if __name__ == "__main__":
 
 
     except BaseException as e:
+        raise e
         print(f"[Exception] {e}")
         reset_inputs()
 
